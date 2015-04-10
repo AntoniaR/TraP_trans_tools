@@ -43,7 +43,7 @@ def trial_data(args):
 def multiple_trials(data,filename):
     # Find the precision and recall for all combinations of the sigma thresholds
     sigmas=np.arange(0.,3.5,(3.5/500.))
-    pool = Pool(processes=5)              # start 20 worker processes
+    pool = Pool(processes=20)              # start 20 worker processes
     inputs = range(2)
     
     # Loop through all the trial sigmas and on multiple workers, then append to a file
