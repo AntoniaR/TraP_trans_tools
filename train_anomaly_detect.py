@@ -237,27 +237,28 @@ def learning_curve(variables,variable,stable,precis_thresh,recall_thresh):
     print train[0,0]
     train=np.array(train)
     valid=np.array(valid)
-    train_list=np.unique([str(x[0]) for x in train])
     valid_list=np.unique([str(x[0]) for x in valid])
     for num in range(len(train)):
         if num>0:
             filename = open("temp_sigma_data.txt", "w")
             filename.write('')
             filename.close()
-            multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in train if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
+            trainTMP=[train[x] for x in range(num)]
+            train_list=np.unique([str(x[0]) for x in trainTMP])
+            multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in trainTMP if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
             data2=np.genfromtxt('temp_sigma_data.txt', delimiter=' ')
-            data=[[np.log10(float(train[n][1])),np.log10(float(train[n][2])),train[n][5],float(train[n][-1])] for n in range(num) if float(train[n][1]) > 0 if float(train[n][2]) > 0]
+            data=[[np.log10(float(trainTMP[n][1])),np.log10(float(trainTMP[n][2])),trainTMP[n][5],float(trainTMP[n][-1])] for n in range(num) if float(trainTMP[n][1]) > 0 if float(trainTMP[n][2]) > 0]
             best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data)
             # Find the thresholds for a given sigma (in log space)
             sigcutx,paramx,range_x = generic_tools.get_sigcut([a[0] for a in data if a[3]==0.],best_sigma1)
             sigcuty,paramy,range_y = generic_tools.get_sigcut([a[1] for a in data if a[3]==0.],best_sigma2)
             # Calculate the training error
-            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in train]) # False Positive
-            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in train]) # False Negative
+            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z[0] in train_list]) # False Positive
+            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z[0] in train_list]) # False Negative
             trainErr.append(check_error(fp,fn,len(train)))
             # Caluculate the validation error
-            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in valid]) # False Positive
-            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in valid]) # False Negative
+            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z[0] in valid_list]) # False Positive
+            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z[0] in valid_list]) # False Negative
             validErr.append(check_error(fp,fn,len(valid)))
     plotLC(len(validErr), trainErr, validErr, 'learning', True, True, 'Number')
     return
