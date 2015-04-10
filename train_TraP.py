@@ -52,12 +52,20 @@ stable = [x for x in variables if float(x[-1]) == 0. if float(x[1]) > 0. if floa
 if anomaly:
 ######### ANOMALY DETECTION ##########
 
+    if tests:
+        # Learning curve
+        train_anomaly_detect.learning_curve(variables,variable,stable,precis_thresh,recall_thresh)
+        
+        # Random suffle and retrain, repeat 1000 times
+        train_anomaly_detect.random_test(variables,variable,stable,1000,precis_thresh,recall_thresh)
+    exit()
+    
     # train the anomaly detection algorithm by conducting multiple trials.
     if not os.path.exists('sigma_data.txt'):
         filename = open("sigma_data.txt", "w")
         filename.write('')
         filename.close()
-        train_anomaly_detect.multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in variables if float(x[1]) > 0 if float(x[2]) > 0])
+        train_anomaly_detect.multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in variables if float(x[1]) > 0 if float(x[2]) > 0],"sigma_data.txt")
     data2=np.genfromtxt('sigma_data.txt', delimiter=' ')
     data=[[np.log10(float(variables[n][1])),np.log10(float(variables[n][2])),variables[n][5],float(variables[n][-1])] for n in range(len(variables)) if float(variables[n][1]) > 0 if float(variables[n][2]) > 0]
     best_sigma1, best_sigma2 = train_anomaly_detect.find_best_sigmas(precis_thresh,recall_thresh,data2,tests,data)
@@ -132,6 +140,7 @@ if anomaly:
         output.write(str(line[0])+','+str(line[1])+','+str(line[2])+'\n')
     output.close()
 
+    
             
 if logistic:
 ###### LOGISTIC REGRESSION #######

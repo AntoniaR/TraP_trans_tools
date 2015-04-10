@@ -9,7 +9,7 @@ pylab.rcParams['legend.loc'] = 'best'
 from matplotlib.ticker import NullFormatter
 from matplotlib.font_manager import FontProperties
 import generic_tools
-from astroML import density_estimation
+#from astroML import density_estimation
 
 def make_colours(frequencies):
     # using a matplotlib colourmap, assign a different colour to each of the unique fields in the input list

@@ -11,6 +11,8 @@ pylab.rcParams['legend.loc'] = 'best'
 from matplotlib.ticker import NullFormatter
 from matplotlib.font_manager import FontProperties
 import os
+from train_logistic_regression import shuffle_datasets
+from train_logistic_regression import create_datasets
 
 
 def trial_data(args):
@@ -38,16 +40,16 @@ def trial_data(args):
     print sigma1, sigma2, precision, recall
     return [sigma1, sigma2, precision, recall]
 
-def multiple_trials(data):
+def multiple_trials(data,filename):
     # Find the precision and recall for all combinations of the sigma thresholds
     sigmas=np.arange(0.,3.5,(3.5/500.))
-    pool = Pool(processes=20)              # start 20 worker processes
+    pool = Pool(processes=5)              # start 20 worker processes
     inputs = range(2)
     
     # Loop through all the trial sigmas and on multiple workers, then append to a file
     for sigma1 in sigmas:
         sigma_data = pool.map(trial_data, [(data,sigma1,sigma2) for sigma2 in sigmas])
-        with open('sigma_data.txt','a') as f_handle:
+        with open(filename,'a') as f_handle:
             np.savetxt(f_handle,sigma_data)
         f_handle.close()
     pool.close() # Close the worker processes once training is complete
@@ -206,3 +208,90 @@ def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2):
 
     return above_thresh_sigma[0],above_thresh_sigma[1]
 
+def plotLC(num, error_train, error_val, fname, xlog, ylog, xlabel):
+    # Plot the learning curves
+    plt.figure(1,figsize=(12,10))
+    plt.plot(num, error_train, 'b-')
+    plt.plot(num, error_val, 'g-')
+    if ylog:
+        plt.yscale('log')
+    if xlog:
+        plt.xscale('log')
+    plt.xlabel(xlabel, fontsize=28)
+    plt.ylabel('Error', fontsize=28)
+    plt.axis([min(num)*0.8, max(num)*1.2, 1e-4,2e-2])
+    plt.legend(['training', 'validation'], loc=4, fontsize=28)
+    plt.savefig('AD_'+fname+'_curve.png')
+    plt.close()
+    return
+
+def learning_curve(variables,variable,stable,precis_thresh,recall_thresh):
+    trainErr=[]
+    validErr=[]
+    variablesTMP=[[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), 0., float(x[6]), float(x[7]), float(x[8]), float(x[9]), float(x[10]), float(x[11]), float(x[12]), float(x[13])] for x in variables]
+    # shuffle up the transient and stable data
+    shuffled = np.matrix(shuffle_datasets(variablesTMP))
+    # sort the data into a training, validation and testing dataset. This is hardcoded to be 60%, 30% and 10% (respectively) of the total dataset
+    train, valid, test = create_datasets(shuffled, len(shuffled)*0.6, len(shuffled)*0.9)
+    print train[0]
+    print train[0,0]
+    train=np.array(train)
+    valid=np.array(valid)
+    train_list=np.unique([str(x[0]) for x in train])
+    valid_list=np.unique([str(x[0]) for x in valid])
+    for num in range(len(train)):
+        if num>0:
+            filename = open("temp_sigma_data.txt", "w")
+            filename.write('')
+            filename.close()
+            multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in train if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
+            data2=np.genfromtxt('temp_sigma_data.txt', delimiter=' ')
+            data=[[np.log10(float(train[n][1])),np.log10(float(train[n][2])),train[n][5],float(train[n][-1])] for n in range(num) if float(train[n][1]) > 0 if float(train[n][2]) > 0]
+            best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data)
+            # Find the thresholds for a given sigma (in log space)
+            sigcutx,paramx,range_x = generic_tools.get_sigcut([a[0] for a in data if a[3]==0.],best_sigma1)
+            sigcuty,paramy,range_y = generic_tools.get_sigcut([a[1] for a in data if a[3]==0.],best_sigma2)
+            # Calculate the training error
+            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in train]) # False Positive
+            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in train]) # False Negative
+            trainErr.append(check_error(fp,fn,len(train)))
+            # Caluculate the validation error
+            fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in valid]) # False Positive
+            fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in valid]) # False Negative
+            validErr.append(check_error(fp,fn,len(valid)))
+    plotLC(len(validErr), trainErr, validErr, 'learning', True, True, 'Number')
+    return
+        
+def random_test(variables,variable,stable,numTrials,precis_thresh,recall_thresh):
+    trainErr=[]
+    validErr=[]
+    for n in range(numTrials):     
+        filename = open("temp_sigma_data.txt", "w")
+        filename.write('')
+        filename.close()
+        variablesTMP=variables
+        # shuffle up the transient and stable data
+        shuffled = np.matrix(shuffle_datasets(variablesTMP))
+        # sort the data into a training, validation and testing dataset. This is hardcoded to be 60%, 30% and 10% (respectively) of the total dataset
+        train, valid, test = create_datasets(shuffled, len(shuffled)*0.6, len(shuffled)*0.9)
+        multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in train if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
+        data2=np.genfromtxt('temp_sigma_data.txt', delimiter=' ')
+        data=[[np.log10(float(train[n][1])),np.log10(float(train[n][2])),train[n][5],float(train[n][-1])] for n in range(len(train)) if float(train[n][1]) > 0 if float(train[n][2]) > 0]
+        best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data)
+        # Find the thresholds for a given sigma (in log space)
+        sigcutx,paramx,range_x = generic_tools.get_sigcut([a[0] for a in data if a[3]==0.],best_sigma1)
+        sigcuty,paramy,range_y = generic_tools.get_sigcut([a[1] for a in data if a[3]==0.],best_sigma2)
+        # Calculate the training error
+        fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in train]) # False Positive
+        fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in train]) # False Negative
+        trainErr.append(check_error(fp,fn,len(train)))
+        # Caluculate the validation error
+        fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z in valid]) # False Positive
+        fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z in valid]) # False Negative
+        validErr.append(check_error(fp,fn,len(valid)))
+    plotLC(len(validErr), trainErr, validErr, 'random', False, True, 'Trial number')
+    return
+        
+def check_error(fp,fn,total):
+    classif_err = float(fp+fn)/float(total)
+    return classif_err
