@@ -152,7 +152,7 @@ def check_method_works(xi,yi,zi1,zi2, data,above_thresh_sigma):
     plt.close()
     return
 
-def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2):
+def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2,plots):
     # Gridding the data for precision and recall
     X=[float(x[0]) for x in data]
     Y=[float(x[1]) for x in data]
@@ -168,38 +168,39 @@ def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2):
     ID=np.array([((a[2]-precis_thresh)**2. + (a[3]-recall_thresh)**2.) for a in combinations]).argmin()
     above_thresh_sigma=combinations[ID]
 
-    # Plot results
-    # Settings
-    nullfmt   = NullFormatter()         # no labels
-    fig = plt.figure(1,figsize=(5,10))
-    ax1 = fig.add_subplot(211)
-    ax2 = fig.add_subplot(212)
-    cax = fig.add_axes([0.1, 0.95, 0.8, 0.03])
-    fig.subplots_adjust(hspace = .001, wspace = 0.001)
-    levels=np.arange(0.0,1.1,0.1)
-    levels2=[0.1, 0.3, 0.5, 0.7, 0.9]
-    ax2.set_xlabel(r'$\sigma$ threshold ($\eta_{\nu}$)', fontsize=18)
-    ax1.set_ylabel(r'$\sigma$ threshold ($V_{\nu}$)', fontsize=18)
-    ax2.set_ylabel(r'$\sigma$ threshold ($V_{\nu}$)', fontsize=18)
-    fontP = FontProperties()
-    fontP.set_size('x-small')
-    ax1.set_xlim([0.0,3.5])
-    ax2.set_xlim([0.0,3.5])
-    ax1.set_ylim([0.0,3.49])
-    ax2.set_ylim([0.0,3.49])
-    ax1.xaxis.set_major_formatter(nullfmt)
-    ax2.set_xlim( ax1.get_xlim() )
-    ax1.text(2.5, 3.0, 'Precision', bbox=dict(facecolor='white'), fontsize=18)
-    ax2.text(2.5, 3.0, 'Recall', bbox=dict(facecolor='white'), fontsize=18)
-    CS1 = ax1.contourf(xi,yi,zi1,levels, cmap=plt.get_cmap('Blues'),alpha=1,extend='both')
-    CS2 = ax2.contourf(xi,yi,zi2,levels, cmap=plt.get_cmap('Blues'),alpha=1,extend='both')
-    fig.colorbar(CS2, cax, orientation='horizontal')
-    ax1.axvline(x=above_thresh_sigma[0], linewidth=2, color='k', linestyle='--')
-    ax2.axvline(x=above_thresh_sigma[0], linewidth=2, color='k', linestyle='--')
-    ax1.axhline(y=above_thresh_sigma[1], linewidth=2, color='k', linestyle='--')
-    ax2.axhline(y=above_thresh_sigma[1], linewidth=2, color='k', linestyle='--')
-    plt.savefig('sim_precisions_and_recalls.png')
-    plt.close()
+    if plots:
+        # Plot results
+        # Settings
+        nullfmt   = NullFormatter()         # no labels
+        fig = plt.figure(1,figsize=(5,10))
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        cax = fig.add_axes([0.1, 0.95, 0.8, 0.03])
+        fig.subplots_adjust(hspace = .001, wspace = 0.001)
+        levels=np.arange(0.0,1.1,0.1)
+        levels2=[0.1, 0.3, 0.5, 0.7, 0.9]
+        ax2.set_xlabel(r'$\sigma$ threshold ($\eta_{\nu}$)', fontsize=18)
+        ax1.set_ylabel(r'$\sigma$ threshold ($V_{\nu}$)', fontsize=18)
+        ax2.set_ylabel(r'$\sigma$ threshold ($V_{\nu}$)', fontsize=18)
+        fontP = FontProperties()
+        fontP.set_size('x-small')
+        ax1.set_xlim([0.0,3.5])
+        ax2.set_xlim([0.0,3.5])
+        ax1.set_ylim([0.0,3.49])
+        ax2.set_ylim([0.0,3.49])
+        ax1.xaxis.set_major_formatter(nullfmt)
+        ax2.set_xlim( ax1.get_xlim() )
+        ax1.text(2.5, 3.0, 'Precision', bbox=dict(facecolor='white'), fontsize=18)
+        ax2.text(2.5, 3.0, 'Recall', bbox=dict(facecolor='white'), fontsize=18)
+        CS1 = ax1.contourf(xi,yi,zi1,levels, cmap=plt.get_cmap('Blues'),alpha=1,extend='both')
+        CS2 = ax2.contourf(xi,yi,zi2,levels, cmap=plt.get_cmap('Blues'),alpha=1,extend='both')
+        fig.colorbar(CS2, cax, orientation='horizontal')
+        ax1.axvline(x=above_thresh_sigma[0], linewidth=2, color='k', linestyle='--')
+        ax2.axvline(x=above_thresh_sigma[0], linewidth=2, color='k', linestyle='--')
+        ax1.axhline(y=above_thresh_sigma[1], linewidth=2, color='k', linestyle='--')
+        ax2.axhline(y=above_thresh_sigma[1], linewidth=2, color='k', linestyle='--')
+        plt.savefig('sim_precisions_and_recalls.png')
+        plt.close()
 
     print("Best sigmas found:"+str(above_thresh_sigma[0])+', '+str(above_thresh_sigma[1]))
     if tests:
@@ -248,7 +249,7 @@ def learning_curve(variables,variable,stable,precis_thresh,recall_thresh):
             multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in trainTMP if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
             data2=np.genfromtxt('temp_sigma_data.txt', delimiter=' ')
             data=[[np.log10(float(trainTMP[n][1])),np.log10(float(trainTMP[n][2])),trainTMP[n][5],float(trainTMP[n][-1])] for n in range(num) if float(trainTMP[n][1]) > 0 if float(trainTMP[n][2]) > 0]
-            best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data)
+            best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data,False)
             # Find the thresholds for a given sigma (in log space)
             sigcutx,paramx,range_x = generic_tools.get_sigcut([a[0] for a in data if a[3]==0.],best_sigma1)
             sigcuty,paramy,range_y = generic_tools.get_sigcut([a[1] for a in data if a[3]==0.],best_sigma2)
@@ -260,6 +261,7 @@ def learning_curve(variables,variable,stable,precis_thresh,recall_thresh):
             fp=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FP'] for z in stable if (float(z[1])>=10.**sigcutx and float(z[2])>=10.**sigcuty) if z[0] in valid_list]) # False Positive
             fn=len([[z[0],float(z[1]),float(z[2]),float(z[3]),float(z[4]),'FN'] for z in variable if (float(z[1])<10.**sigcutx or float(z[2])<10.**sigcuty) if z[0] in valid_list]) # False Negative
             validErr.append(check_error(fp,fn,len(valid)))
+            print num,trainErr[-1], validErr[-1]
     plotLC(len(validErr), trainErr, validErr, 'learning', True, True, 'Number')
     return
         
@@ -278,7 +280,7 @@ def random_test(variables,variable,stable,numTrials,precis_thresh,recall_thresh)
         multiple_trials([[np.log10(float(x[1])), np.log10(float(x[2])), float(x[-1])] for x in train if float(x[1]) > 0 if float(x[2]) > 0],"temp_sigma_data.txt")
         data2=np.genfromtxt('temp_sigma_data.txt', delimiter=' ')
         data=[[np.log10(float(train[n][1])),np.log10(float(train[n][2])),train[n][5],float(train[n][-1])] for n in range(len(train)) if float(train[n][1]) > 0 if float(train[n][2]) > 0]
-        best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data)
+        best_sigma1, best_sigma2 = find_best_sigmas(precis_thresh,recall_thresh,data2,False,data,False)
         # Find the thresholds for a given sigma (in log space)
         sigcutx,paramx,range_x = generic_tools.get_sigcut([a[0] for a in data if a[3]==0.],best_sigma1)
         sigcuty,paramy,range_y = generic_tools.get_sigcut([a[1] for a in data if a[3]==0.],best_sigma2)
