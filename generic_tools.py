@@ -1,5 +1,6 @@
 from scipy.stats import norm
 import numpy as np
+import random
 
 def extract_data(filename):
     # extract data in a csv file into a list
@@ -46,3 +47,31 @@ def label_data(data,label1,label2):
     data=np.matrix(data)
     data=np.c_[data,[label2]*len(data)]
     return data.tolist()
+
+def shuffle_datasets(data):
+    # shuffle the data into a random order
+    shuffled=[]
+    val_list=range(len(data))
+    random.shuffle(val_list)
+    for row in range(len(data)):
+        shuffled.append(data[val_list[row]])
+    shuffled=np.array(shuffled)
+    # returning the shuffled dataset
+    return shuffled
+
+def create_datasets(data, n, m):
+    # split the data after shuffling
+    # n and m are the fraction of the data to be the training dataset and the validation dataset respectively
+    shuffle_datasets(data)
+    train=data[:n,:]
+    valid=data[n:m,:]
+    test=data[m:,:]
+    # return the training, validation and test datasets 
+    return train, valid, test
+
+def write_test_data(filename,tmp):
+    output = open(filename,'w')
+    for line in tmp:
+        output.write(str(line[0])+','+str(line[1])+','+str(line[2])+'\n')
+    output.close()
+    return

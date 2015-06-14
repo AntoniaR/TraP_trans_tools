@@ -10,26 +10,26 @@ pylab.rcParams['legend.loc'] = 'best'
 from matplotlib.ticker import NullFormatter
 from matplotlib.font_manager import FontProperties
 
-def shuffle_datasets(data):
-    # shuffle the data into a random order
-    shuffled=[]
-    val_list=range(len(data))
-    random.shuffle(val_list)
-    for row in range(len(data)):
-        shuffled.append(data[val_list[row]])
-    shuffled=np.array(shuffled)
-    # returning the shuffled dataset
-    return shuffled
+#def shuffle_datasets(data):
+#    # shuffle the data into a random order
+#    shuffled=[]
+#    val_list=range(len(data))
+#    random.shuffle(val_list)
+#    for row in range(len(data)):
+#        shuffled.append(data[val_list[row]])
+#    shuffled=np.array(shuffled)
+#    # returning the shuffled dataset
+#    return shuffled
 
-def create_datasets(data, n, m):
-    # split the data after shuffling
-    # n and m are the fraction of the data to be the training dataset and the validation dataset respectively
-    shuffle_datasets(data)
-    train=data[:n,:]
-    valid=data[n:m,:]
-    test=data[m:,:]
-    # return the training, validation and test datasets 
-    return train, valid, test
+#def create_datasets(data, n, m):
+#    # split the data after shuffling
+#    # n and m are the fraction of the data to be the training dataset and the validation dataset respectively
+#    shuffle_datasets(data)
+#    train=data[:n,:]
+#    valid=data[n:m,:]
+#    test=data[m:,:]
+#    # return the training, validation and test datasets 
+#    return train, valid, test
 
 def create_X_y_arrays(data):
     # split the data into the training data and their labels
@@ -116,22 +116,22 @@ def validation_curve(X, y, Xval, yval,options):
     #return the training and validation errors for given lambda values and the optimal lambda.
     return error_train, error_val, lambda_vec, lda
 
-def plotLC(num, error_train, error_val, fname, xlog, ylog, xlabel):
-    # Plot the learning curves
-    plt.figure(1,figsize=(12,10))
-    plt.plot(num, error_train, 'b-')
-    plt.plot(num, error_val, 'g-')
-    if ylog:
-        plt.yscale('log')
-    if xlog:
-        plt.xscale('log')
-    plt.xlabel(xlabel, fontsize=28)
-    plt.ylabel('Error', fontsize=28)
-    plt.axis([min(num)*0.8, max(num)*1.2, 1e-4,2e-2])
-    plt.legend(['training', 'validation'], loc=4, fontsize=28)
-    plt.savefig('LR_'+fname+'_curve.png')
-    plt.close()
-    return
+#def plotLC(num, error_train, error_val, fname, xlog, ylog, xlabel):
+#    # Plot the learning curves
+#    plt.figure(1,figsize=(12,10))
+#    plt.plot(num, error_train, 'b-')
+#    plt.plot(num, error_val, 'g-')
+#    if ylog:
+#        plt.yscale('log')
+#    if xlog:
+#        plt.xscale('log')
+#    plt.xlabel(xlabel, fontsize=28)
+#    plt.ylabel('Error', fontsize=28)
+#    plt.axis([min(num)*0.8, max(num)*1.2, 1e-4,2e-2])
+#    plt.legend(['training', 'validation'], loc=4, fontsize=28)
+#    plt.savefig('LR_'+fname+'_curve.png')
+#    plt.close()
+#    return
 
 def classify_data(X,y,theta):
     # classify a given dataset X, using the input model theta and compare to the input labels y

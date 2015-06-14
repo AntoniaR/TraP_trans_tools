@@ -9,7 +9,10 @@ pylab.rcParams['legend.loc'] = 'best'
 from matplotlib.ticker import NullFormatter
 from matplotlib.font_manager import FontProperties
 import generic_tools
-#from astroML import density_estimation
+from astroML import density_estimation
+
+#
+matplotlib.rcParams.update({'font.size': 20})
 
 def make_colours(frequencies):
     # using a matplotlib colourmap, assign a different colour to each of the unique fields in the input list
@@ -226,4 +229,23 @@ def create_diagnostic(trans_data,sigcut_etanu,sigcut_Vnu,frequencies,dataset_id)
     plt.savefig('ds'+str(dataset_id)+'_diagnostic_plots.png')
     plt.close()
 
+    return
+
+def plotLC(num, error_train, error_val, fname, xlog, ylog, xlabel):
+    # Plot the learning curves
+    plt.figure(1,figsize=(8,8))
+    error_train=[a if a!=0 else 1e-6 for a in error_train]
+    error_val=[a if a!=0 else 1e-6 for a in error_val]
+    plt.plot(num, error_train, 'b-', linewidth=2.0)
+    plt.plot(num, error_val, 'g-', linewidth=2.0)
+    if ylog:
+        plt.yscale('log')
+    if xlog:
+        plt.xscale('log')
+    plt.xlabel(xlabel, fontsize=22)
+    plt.ylabel('Error', fontsize=22)
+    plt.axis([min(num), max(num)*1.2, 1e-4,1e-0])
+    #plt.legend(['training', 'validation'], loc=4, fontsize=28)
+    plt.savefig(fname+'_curve.png')
+    plt.close()
     return
