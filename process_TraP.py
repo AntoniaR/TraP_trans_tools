@@ -6,8 +6,8 @@ import sys
 import os
 
 # Obtain input parameters from the command line
-if len(sys.argv) != 11:
-    print 'python process_TraP.py <database> <username> <password> <dataset_id> <release> <host> <port> <sigma1> <sigma2> <lightcurves>'
+if len(sys.argv) != 12:
+    print 'python process_TraP.py <database> <username> <password> <dataset_id> <release> <host> <port> <sigma1> <sigma2> <lightcurves> <plotGrp>'
     exit()
 database = sys.argv[1]
 username = sys.argv[2]
@@ -19,19 +19,28 @@ port = int(sys.argv[7])
 sigma1 = float(sys.argv[8])
 sigma2 = float(sys.argv[9])
 lightcurves = sys.argv[10]
+pltGrp = sys.argv[11]
 
 # get TraP data from the database and sort it into the required array which is then loaded
 if not os.path.isfile('ds'+str(dataset_id)+'_trans_data.txt'):
     format_TraP_data.format_data(database,dataset_id,release,host,port,username,password,lightcurves)
 trans_data=generic_tools.extract_data('ds'+str(dataset_id)+'_trans_data.txt')
 # make first array for the scatter_hist plot: [log10(eta_nu), log10(V_nu), nu]
-data=[[trans_data[n][0],np.log10(float(trans_data[n][1])),np.log10(float(trans_data[n][2])),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][-4]=='2']
 
+if pltGrp == 'A':
+    data=[[trans_data[n][0],np.log10(float(trans_data[n][1])),np.log10(float(trans_data[n][2])),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0]
+elif pltGrp == 'M':
+    data=[[trans_data[n][0],np.log10(float(trans_data[n][1])),np.log10(float(trans_data[n][2])),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][13]=='2']
+elif pltGrp == 'F':
+    data=[[trans_data[n][0],np.log10(float(trans_data[n][1])),np.log10(float(trans_data[n][2])),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][9]=='2' if trans_data[n][13]!='2']
+else:
+    data=[[trans_data[n][0],np.log10(float(trans_data[n][1])),np.log10(float(trans_data[n][2])),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if float(trans_data[n][3])> float(pltGrp)]
+    
 # print out the transients that TraP automatically found
 print 'Identified Transient Candidates (no margin)'
-print np.sort(list(set([int(x[0]) for x in trans_data if x[-4]!='2' if float(x[-2])>=float(x[-1]) if float(x[-3])<float(x[-1])])))
+print np.sort(list(set([int(x[0]) for x in trans_data if x[9]!='2' if float(x[11])>=float(x[12]) if float(x[10])<float(x[12])])))
 print 'Identified Transients (no margin)'
-print np.sort(list(set([int(x[0]) for x in trans_data if x[-4]!='2' if float(x[-3])>=float(x[-1])])))
+print np.sort(list(set([int(x[0]) for x in trans_data if x[9]!='2' if float(x[10])>=float(x[12])])))
 
 # Find the thresholds for a given sigma (in log space)
 sigcutx,paramx,range_x = generic_tools.get_sigcut([a[1] for a in data],sigma1)
@@ -40,8 +49,8 @@ if sigma1 == 0:
     sigcutx=0
 if sigma2 == 0:
     sigcuty=0
-print(r'Gaussian Fit $\eta$: '+str(round(10.**paramx[0],2))+'(+'+str(round((10.**(paramx[0]+paramx[1])-10.**paramx[0]),2))+' '+str(round((10.**(paramx[0]-paramx[1])-10.**paramx[0]),2))+')')
-print(r'Gaussian Fit $V$: '+str(round(10.**paramy[0],2))+'(+'+str(round((10.**(paramy[0]+paramy[1])-10.**paramy[0]),2))+' '+str(round((10.**(paramy[0]-paramy[1])-10.**paramy[0]),2))+')')
+print(r'Gaussian Fit log10($\eta$): '+str(round(paramx[0],2))+'(+/-'+str(round(paramx[1],2))+')')
+print(r'Gaussian Fit log10($V$): '+str(round(paramy[0],2))+'(+/-'+str(round(paramy[1],2))+')')
 print 'Eta_nu threshold='+str(10.**sigcutx)+', V_nu threshold='+str(10.**sigcuty)
 
 # Get the different frequencies in the dataset
@@ -54,7 +63,13 @@ print 'Identified variables:'
 print np.sort(list(set(IdTrans)))
 
 # make second array for the diagnostic plot: [eta_nu, V_nu, maxflx_nu, flxrat_nu, nu, trans_type]
-data2=[[trans_data[n][0],float(trans_data[n][1]),float(trans_data[n][2]),float(trans_data[n][3]),float(trans_data[n][4]),trans_data[n][5], trans_data[n][-1]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][-4]=='2'] 
+if pltGrp=='A':
+    data2=[[trans_data[n][0],float(trans_data[n][1]),float(trans_data[n][2]),float(trans_data[n][3]),float(trans_data[n][4]),trans_data[n][5], trans_data[n][12]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0]
+elif pltGrp=='M':
+    data2=[[trans_data[n][0],float(trans_data[n][1]),float(trans_data[n][2]),float(trans_data[n][3]),float(trans_data[n][4]),trans_data[n][5], trans_data[n][12]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][13]=='2']
+else:
+    data2=[[trans_data[n][0],float(trans_data[n][1]),float(trans_data[n][2]),float(trans_data[n][3]),float(trans_data[n][4]),trans_data[n][5], trans_data[n][12]] for n in range(len(trans_data)) if float(trans_data[n][1]) > 0 if float(trans_data[n][2]) > 0 if trans_data[n][9]=='2' if trans_data[n][13]!='2'] 
 
 # Create the diagnostic plot
 plotting_tools.create_diagnostic(data2,sigcutx,sigcuty,frequencies,dataset_id)
+

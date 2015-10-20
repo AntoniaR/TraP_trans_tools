@@ -25,7 +25,7 @@ def get_sigcut(x,sigma):
     # identify the sigma cut for a given dataset fitted with a Gaussian distribuion
     param=norm.fit(x)
     range_x=np.linspace(min(x),max(x),1000)
-    sigcut = param[1]*sigma+param[0]
+    sigcut = (param[1]*sigma)+param[0]
     return sigcut,param,range_x # return the sigma cut, the Gaussian model and the range fitted over
 
 def precision_and_recall(tp,fp,fn):

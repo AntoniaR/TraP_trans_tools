@@ -9,7 +9,7 @@ import random
 from scipy import optimize
 
 
-def learning_curve(anomaly,logistic,transSrc,data,full_data,lda,options):
+def learning_curve(anomaly,logistic,transSrc,data,full_data,lda,options,stable,variable,precis_thresh,recall_thresh):
     # Conduct tests to ensure that the machine learning algorithm is working effectively
     print "Creating learning curves"
 
@@ -115,7 +115,7 @@ def lambda_curve(data,lda,options):
     plotting_tools.plotLC(lambda_vec, error_train, error_valid, "LR_validation", True, True, r"$\lambda$")
     return
 
-def repeat_curve(anomaly,logistic,transSrc,data,full_data,lda,options):
+def repeat_curve(anomaly,logistic,transSrc,data,full_data,lda,options,stable,variable,precis_thresh,recall_thresh):
     # check that the results are not dependent upon the subsample of the dataset chosen to train the algorithm by repeating the training a large number of times and checking that the training and validation errors are roughly constant (Optional but recommended).
     print "Creating repeat curve"
     error_train_LR=[]
@@ -174,8 +174,8 @@ def repeat_curve(anomaly,logistic,transSrc,data,full_data,lda,options):
                 worst_shuffled = np.matrix(generic_tools.shuffle_datasets(worst))
             
                 # sort the data into a training, validation and testing dataset. This is hardcoded to be 60%, 30% and 10% (respectively) of the total dataset
-                best_train, best_valid, best_test = generic_tools.create_datasets(best_shuffled, len(best_shuffled)*0.6, len(best_shuffled)*0.9)
-                worst_train, worst_valid, worst_test = generic_tools.create_datasets(worst_shuffled, len(worst_shuffled)*0.6, len(worst_shuffled)*0.9)
+                best_train, best_valid, best_test = generic_tools.create_datasets(best_shuffled, int(len(best_shuffled)*0.6), int(len(best_shuffled)*0.9))
+                worst_train, worst_valid, worst_test = generic_tools.create_datasets(worst_shuffled, int(len(worst_shuffled)*0.6), int(len(worst_shuffled)*0.9))
     
                 best_plot_data, worst_plot_data, sigBest, sigWorst = train_sigma_margin.find_sigma_margin(best_train, worst_train, detection_threshold)
                 error_train_TBest.append(train_sigma_margin.training_error(best_train,sigBest,detection_threshold))

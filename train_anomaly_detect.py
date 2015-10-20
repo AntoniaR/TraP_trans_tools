@@ -158,7 +158,6 @@ def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2,plots):
     Y=[float(x[1]) for x in data]
     Z1=[float(x[2]) for x in data]
     Z2=[float(x[3]) for x in data]
-    print 'gridding sigma data'
     xi,yi = np.mgrid[0:3.5:1000j, 0:3.5:1000j]
     zi1 = griddata((X, Y), Z1, (xi, yi), method='cubic', fill_value=1.)
     zi2 = griddata((X, Y), Z2, (xi, yi), method='cubic', fill_value=0.)
@@ -203,9 +202,9 @@ def find_best_sigmas(precis_thresh,recall_thresh,data,tests, data2,plots):
         plt.close()
 
     print("Best sigmas found:"+str(above_thresh_sigma[0])+', '+str(above_thresh_sigma[1]))
-    if tests:
-        print "Entering sigma tests"
-        check_method_works(xi,yi,zi1,zi2,data2,above_thresh_sigma)
+#    if tests:
+#        print "Entering sigma tests"
+#        check_method_works(xi,yi,zi1,zi2,data2,above_thresh_sigma)
 
     return above_thresh_sigma[0],above_thresh_sigma[1]
 

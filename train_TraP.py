@@ -49,7 +49,7 @@ for filename in files:
     trans_data = trans_data + generic_tools.label_data(trans_data_tmp,sim_name,1)
 
 full_data=stable_data+trans_data
-variables = [x for x in full_data if x[-5]=='2']
+variables = [x for x in full_data if x[9]=='2']
 
 # Sort data into transient and non-transient
 #variable = [[x[0],x[1],float(x[2]),x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],x[11],x[12]] for x in variables if float(x[-1]) != 0.  if float(x[1]) > 0. if float(x[2]) > 0.]
@@ -63,10 +63,10 @@ tmpStable=[[int(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), int(x
 data = tmpVariable+tmpStable
 
 if tests:
-    MLtests.learning_curve(anomaly,logistic,transSrc,data,full_data,lda,options)    
+    MLtests.learning_curve(anomaly,logistic,transSrc,data,full_data,lda,options,stable,variable,precis_thresh,recall_thresh)    
     if logistic:
         MLtests.lambda_curve(data,lda,options)
-    MLtests.repeat_curve(anomaly,logistic,transSrc,data,full_data,lda,options)
+    MLtests.repeat_curve(anomaly,logistic,transSrc,data,full_data,lda,options,stable,variable,precis_thresh,recall_thresh)
 
 if anomaly:
 ######### ANOMALY DETECTION ##########
